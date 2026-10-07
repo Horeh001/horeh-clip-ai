@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Horeh Clip AI</title>
+<style>
+body{margin:0;font-family:Arial,sans-serif;background:#0b1020;color:#fff;min-height:100vh;display:grid;place-items:center}
+.wrap{width:min(760px,92%);padding:32px}.card{background:#151c32;border:1px solid #2b3555;border-radius:22px;padding:28px;box-shadow:0 20px 60px #0006}
+h1{margin:0 0 8px;font-size:38px}.sub{color:#aeb8d2;margin-bottom:28px}
+.row{display:flex;gap:10px}.row input{flex:1;padding:16px;border-radius:12px;border:1px solid #3b4668;background:#0d1427;color:#fff;font-size:16px}
+button{padding:16px 20px;border:0;border-radius:12px;background:#6d5dfc;color:#fff;font-weight:700;cursor:pointer}
+button:disabled{opacity:.5}.status{margin-top:18px;color:#aeb8d2}.results{display:grid;gap:12px;margin-top:22px}
+.result{display:flex;justify-content:space-between;align-items:center;background:#0d1427;border:1px solid #2b3555;padding:16px;border-radius:14px}
+a{color:#fff;text-decoration:none}.actions{display:flex;gap:8px}.actions a{background:#222d4d;padding:10px 14px;border-radius:9px}
+.note{font-size:12px;color:#8490ad;margin-top:20px}
+</style>
+</head>
+<body>
+<div class="wrap"><div class="card">
+<h1>Horeh Clip AI</h1>
+<div class="sub">Paste an authorized direct video URL and create 3 vertical Shorts.</div>
+<div class="row">
+<input id="url" placeholder="https://example.com/video.mp4">
+<button id="go">Create 3 Shorts</button>
+</div>
+<div class="status" id="status"></div>
+<div class="results" id="results"></div>
+<div class="note">Only process videos you own or have permission to edit. Direct MP4/WebM URLs are supported by this starter deployment.</div>
+</div></div>
+<script>
+const go=document.querySelector('#go'), url=document.querySelector('#url'), status=document.querySelector('#status'), results=document.querySelector('#results');
+go.onclick=async()=>{
+ const u=url.value.trim(); if(!u){status.textContent='Paste a video URL first.';return}
+ go.disabled=true; results.innerHTML=''; status.textContent='Processing…';
+ try{
+  const r=await fetch('/api/process-url',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({url:u})});
+  const d=await r.json(); if(!r.ok) throw new Error(d.detail||'Processing failed');
+  status.textContent='Done — your Shorts are ready.';
+  results.innerHTML=d.clips.map((c,i)=>`<div class="result"><b>Short ${i+1}</b><div class="actions"><a href="${c.url}" target="_blank">Watch</a><a href="${c.url}" download>Download</a></div></div>`).join('');
+ }catch(e){status.textContent='Error: '+e.message}
+ finally{go.disabled=false}
+};
+</script>
+</body>
+</html>
